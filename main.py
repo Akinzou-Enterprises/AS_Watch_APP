@@ -1,44 +1,55 @@
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import serial.tools.list_ports
+import serial
 from PyQt5.QtCore import QTimer
 from datetime import datetime
+import time
 
 app = QtWidgets.QApplication([])
 dlg = uic.loadUi("GUI/AS_Watch_APP.ui")
 dlg.setWindowIcon(QtGui.QIcon('GUI/icon.png'))
-ints = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 NowPorts = []
 
 
 def send():
     dlg.SerialPrint.append("")
     actualise = False
-    SelectedPortList = list(dlg.PortList.currentText())
-    port = 'COM'
-    port += SelectedPortList[3]
 
-    if SelectedPortList[4] in ints:
-        port += SelectedPortList[4]
+    port = dlg.PortList.currentData()
 
-    PrintInSerial = "Sending to: " + str(port) + ":"
-    dlg.SerialPrint.append(PrintInSerial)
+    ser = serial.Serial(port, 9600, timeout=1)
+    print_in_serial = "Sending to: " + str(port) + ":"
+    ser.readline()
+    dlg.SerialPrint.append(print_in_serial)
+    dlg.SerialPrint.append("    Connecting...")
+    command = "A"
+    ser.write(command.encode())
+    data = "    " + ser.readline().decode("utf-8")
+    print(data)
+    if data:
+        print(data)
+        dlg.SerialPrint.append(data)
 
     if dlg.ActualiseTime.isChecked():
-        PrintInSerial = "   Actualise time to: " + str(datetime.now().strftime("%Y-%m-%e %H:%M:%S"))
-        dlg.SerialPrint.append(PrintInSerial)
+        print_in_serial = "   Actualise time to: " + str(datetime.now().strftime("%Y-%m-%e %H:%M:%S"))
+        dlg.SerialPrint.append(print_in_serial)
 
     if dlg.SeaPressure.value():
-        PrintInSerial = "   Set sea pressure to: " + str(dlg.SeaPressure.value()) + " hPa"
-        dlg.SerialPrint.append(PrintInSerial)
+        print_in_serial = "   Set sea pressure to: " + str(dlg.SeaPressure.value()) + " hPa"
+        dlg.SerialPrint.append(print_in_serial)
 
-def checkPorts():
+    ser.close()
+
+
+def check_ports():
     global NowPorts
     ports = list(serial.tools.list_ports.comports())
 
     if ports != NowPorts:
         dlg.PortList.clear()
         for p in ports:
-            dlg.PortList.addItem(str(p))
+            print(p)
+            dlg.PortList.addItem(str(p), p.device)
 
         dlg.PortList.setEnabled(True)
         dlg.ActualiseTime.setEnabled(True)
@@ -46,7 +57,7 @@ def checkPorts():
         dlg.SeaPressure.setEnabled(True)
         dlg.SerialPrint.setEnabled(True)
 
-    if ports == []:
+    if not ports:
         dlg.PortList.clear()
         dlg.PortList.addItem("Nothing is connected!")
         dlg.PortList.setEnabled(False)
@@ -56,10 +67,10 @@ def checkPorts():
         dlg.SerialPrint.setEnabled(False)
 
     NowPorts = ports
-    QTimer.singleShot(1000, checkPorts)
+    QTimer.singleShot(1000, check_ports)
 
 
 dlg.Execute.clicked.connect(send)
-checkPorts()
+check_ports()
 dlg.show()
 app.exec()
