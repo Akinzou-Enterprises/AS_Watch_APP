@@ -1,15 +1,12 @@
-import  serial
+import time
+import serial
 
-ser = serial.Serial('COM9', 9600, timeout=1)
-Command = "b"
-
-x = 2
-while x:
-    print(x)
-    x -= 1
-    ser.write(Command.encode())
-    data = ser.readline()
-    # if data == b'\r\n':
-    #     continue
-    if data:
-        print(data)
+result = time.localtime()
+print("result:", result)
+print("\nyear:", result.tm_mon)
+print("tm_hour:", result.tm_hour)
+print(str(result.tm_mon) + " " + str(result.tm_min))
+ser = serial.Serial('COM9', 115200, timeout=0.2)
+command = "A0 17 19"
+print(command)
+ser.write(command.encode())
