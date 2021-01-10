@@ -2,7 +2,6 @@ from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import serial.tools.list_ports
 import serial
 from PyQt5.QtCore import QTimer
-from datetime import datetime
 import time
 
 app = QtWidgets.QApplication([])
@@ -17,22 +16,33 @@ def send():
 
     port = dlg.PortList.currentData()
 
-    ser = serial.Serial(port, 9600, timeout=1)
-    print_in_serial = "Sending to: " + str(port) + ":"
+    ser = serial.Serial(port, 115200, timeout=0.2)
+    print_in_serial = "Sending to: " + str(port)
     ser.readline()
     dlg.SerialPrint.append(print_in_serial)
     dlg.SerialPrint.append("    Connecting...")
     command = "A"
     ser.write(command.encode())
-    data = "    " + ser.readline().decode("utf-8")
+    data =  ser.readline().decode("utf-8")
     print(data)
-    if data:
-        print(data)
-        dlg.SerialPrint.append(data)
+    if data == "Connected!":
+        print_in_serial = "      " + data
+        dlg.SerialPrint.append(print_in_serial)
+
+    else:
+        dlg.SerialPrint.append("    Can't connect to device!")
+        return
 
     if dlg.ActualiseTime.isChecked():
-        print_in_serial = "   Actualise time to: " + str(datetime.now().strftime("%Y-%m-%e %H:%M:%S"))
-        dlg.SerialPrint.append(print_in_serial)
+        dlg.SerialPrint.append("     Actualise time")
+        result = time.localtime()
+        print(result.tm_sec)
+        command = "A0 " + str(result.tm_sec) + " " + str(result.tm_min) + " " + str(result.tm_hour)
+        print(command.encode())
+        ser.write(command.encode())
+        ser.write(command.encode())
+        data = ser.readline().decode("utf-8")
+
 
     if dlg.SeaPressure.value():
         print_in_serial = "   Set sea pressure to: " + str(dlg.SeaPressure.value()) + " hPa"
