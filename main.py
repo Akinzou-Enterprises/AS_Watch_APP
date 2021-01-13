@@ -23,7 +23,7 @@ def send():
     dlg.SerialPrint.append("    Connecting...")
     command = "A"
     ser.write(command.encode())
-    data =  ser.readline().decode("utf-8")
+    data = ser.readline().decode("utf-8")
     print(data)
     if data == "Connected!":
         print_in_serial = "      " + data
@@ -42,19 +42,17 @@ def send():
         ser.write(command.encode())
         data = ser.readline().decode("utf-8")
         time.sleep(1)
-        command = "A2 " + str(result.tm_mday) + " " + str(result.tm_mon) + " " + str(result.tm_year - 2000)
+        command = "A2 " + str(result.tm_mday) + " " + str(result.tm_mon) + " " + str(result.tm_year - 2000) + " " + str(result.tm_wday + 1)
         print(command.encode())
         ser.write(command.encode())
         data = ser.readline().decode("utf-8")
-
-
 
     if dlg.SeaPressure.value():
         print_in_serial = "   Set sea pressure to: " + str(dlg.SeaPressure.value()) + " hPa"
         command = "A1 " + str(dlg.SeaPressure.value())
         dlg.SerialPrint.append("     Setting sea level pressure")
         dlg.SerialPrint.append(print_in_serial)
-        
+
     time.sleep(0.5)
     ser.close()
 
